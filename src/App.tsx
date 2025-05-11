@@ -1,35 +1,66 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import axios from 'axios';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const { getRootProps, getInputProps, isDragActive, acceptedFiles } = useDropzone();
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async () => {
+    if (acceptedFiles.length === 0) return;
+
+    const formData = new FormData();
+    acceptedFiles.forEach((file) => formData.append('videos', file));
+
+    console.log('formData'+formData)
+    try {
+      setUploading(true);
+      const response = await axios.post(import.meta.env.VITE_API_URL + '/api/v1/analyse', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Upload successful:', response.data);
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <Card className="w-96 p-4">
+        <CardContent>
+          <div {...getRootProps({
+            className: 'border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer'
+          })}>
+            <input {...getInputProps()} />
+            {isDragActive ? (
+              <p className="text-blue-500">Drop the files here ...</p>
+            ) : (
+              <p className="text-gray-500">Drag & drop some files here, or click to select files</p>
+            )}
+          </div>
 
-export default App
+          {acceptedFiles.length > 0 && (
+            <ul className="mt-4 space-y-2">
+              {acceptedFiles.map((file, index) => (
+                <li key={index} className="text-sm text-gray-700">{file.name}</li>
+              ))}
+            </ul>
+          )}
+
+          <Button className="mt-4 w-full" onClick={handleUpload} disabled={uploading}>
+            {uploading ? 'Uploading...' : 'Upload Files'}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default App;
