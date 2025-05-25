@@ -1,44 +1,103 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+
+type AnalysisResult = {
+	filename: string;
+	analysis: string[];
+	error?: string;
+};
 
 const App = () => {
 	const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
 		useDropzone();
 	const [uploading, setUploading] = useState(false);
-
+	const [results, setResults] = useState<AnalysisResult[]>([]);
+	useEffect(() => {
+		if (results.length >= 1) {
+			results.forEach((res) => {
+				if (res.error) {
+					throw new Error(res.error);
+				}
+			});
+		}
+	}, [results]);
 	const handleUpload = async () => {
 		if (acceptedFiles.length === 0) return;
 
 		const formData = new FormData();
 		acceptedFiles.forEach((file) => formData.append("videos", file));
 
-		console.log("formData" + formData);
+		setUploading(true);
+		setResults(
+			acceptedFiles.map((file) => ({
+				filename: file.name,
+				analysis: [],
+			}))
+		);
 		try {
-			setUploading(true);
-			const response = await axios.post(
+			const response = await fetch(
 				import.meta.env.VITE_API_URL + "/api/v1/analyse",
-				formData,
 				{
-					headers: {
-						"Content-Type": "multipart/form-data",
-					},
+					method: "POST",
+					body: formData,
 				}
 			);
+			if (!response.body) {
+				throw new Error("No response body available.");
+			}
+			const reader = response.body?.getReader();
+			const decoder = new TextDecoder();
 
-			console.log("Upload successful:", response.data);
-		} catch (error) {
-			console.error("Upload failed:", error);
-		} finally {
-			setUploading(false);
+			let buffer = "";
+
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) {
+					setUploading(false);
+					break;
+				}
+
+				buffer += decoder.decode(value ?? new Uint8Array(), { stream: true });
+
+				const lines = buffer.split("\n\n");
+				buffer = lines.pop() ?? "";
+
+				for (const line of lines) {
+					if (line.startsWith("data: ")) {
+						const json: AnalysisResult = JSON.parse(line.replace("data: ", ""));
+
+						setResults((prev) =>
+							prev.map((r) =>
+								r.filename === json.filename
+									? {
+											...r,
+											analysis: Array.isArray(json.analysis)
+												? json.analysis
+												: JSON.parse(json.analysis),
+									  }
+									: r
+							)
+						);
+					}
+				}
+			}
+		} catch (err) {
+			console.error("Streaming error:", err);
+			setResults((prev) =>
+				prev.map((r) => ({
+					...r,
+					analysis: [],
+					error: "Analysis failed. Please try again.",
+				}))
+			);
 		}
 	};
 
 	return (
-		<div className="flex items-center justify-center min-h-screen bg-gray-50">
-			<Card className="w-96 p-4">
+		<div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
+			<Card className="w-full max-w-md">
 				<CardContent>
 					<div
 						{...getRootProps({
@@ -73,6 +132,32 @@ const App = () => {
 					>
 						{uploading ? "Uploading..." : "Upload Files"}
 					</Button>
+
+					{results.map((result, i) => (
+						<div key={i} className="mt-4 p-2 border rounded">
+							<p className="font-semibold text-gray-700">{result.filename}</p>
+
+							{result.error ? (
+								<p className="text-red-500 text-sm mt-2">{result.error}</p>
+							) : result.analysis.length === 0 ? (
+								<div className="flex gap-2 mt-2">
+									<span className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></span>
+									<span className="text-sm text-gray-500">Analyzing...</span>
+								</div>
+							) : (
+								<div className="flex flex-wrap gap-2 mt-2">
+									{result.analysis.map((keyword, idx) => (
+										<span
+											key={idx}
+											className="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded-full"
+										>
+											{keyword}
+										</span>
+									))}
+								</div>
+							)}
+						</div>
+					))}
 				</CardContent>
 			</Card>
 		</div>
