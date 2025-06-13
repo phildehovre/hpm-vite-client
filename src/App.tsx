@@ -2,12 +2,18 @@ import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getCookie } from "./utils/cookies";
 
 type AnalysisResult = {
 	filename: string;
 	analysis: string[];
 	error?: string;
 };
+
+const BASE_URL =
+	import.meta.env.VITE_NODE_ENV === "development"
+		? import.meta.env.VITE_LOCAL_URL
+		: import.meta.env.VITE_API_URL;
 
 const App = () => {
 	const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
@@ -23,6 +29,7 @@ const App = () => {
 			});
 		}
 	}, [results]);
+
 	const handleUpload = async () => {
 		if (acceptedFiles.length === 0) return;
 
@@ -37,13 +44,15 @@ const App = () => {
 			}))
 		);
 		try {
-			const response = await fetch(
-				import.meta.env.VITE_API_URL + "/api/v1/analyse",
-				{
-					method: "POST",
-					body: formData,
-				}
-			);
+			const token = getCookie("wp_jwt_token");
+			const response = await fetch(BASE_URL + "/api/v1/analyse", {
+				method: "POST",
+				body: formData,
+				headers: {
+					Authorization: token ? `Bearer ${token}` : "",
+				},
+				credentials: "include",
+			});
 
 			if (!response.body) {
 				throw new Error("No response body available.");
