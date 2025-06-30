@@ -20,6 +20,33 @@ const App = () => {
 		useDropzone();
 	const [uploading, setUploading] = useState(false);
 	const [results, setResults] = useState<AnalysisResult[]>([]);
+	const [jwt, setJwt] = useState<string>("");
+
+	useEffect(() => {
+		const fetchJWT = async () => {
+			try {
+				const res = await fetch(
+					`https://${import.meta.env.VITE_WP_SITE}/wp-json/my-auth/v1/token`,
+					{
+						credentials: "include", // important: sends WordPress cookies
+					}
+				);
+				const data = await res.json();
+				if (data.token) {
+					setJwt(data.token);
+				} else {
+					console.warn("No token returned");
+				}
+			} catch (err) {
+				console.error("Failed to fetch JWT:", err);
+			}
+		};
+
+		fetchJWT();
+	}, []);
+
+	console.log("JWT: ", jwt);
+
 	useEffect(() => {
 		if (results.length >= 1) {
 			results.forEach((res) => {
@@ -44,12 +71,11 @@ const App = () => {
 			}))
 		);
 		try {
-			const token = getCookie("wp_jwt_token");
 			const response = await fetch(BASE_URL + "/api/v1/analyse", {
 				method: "POST",
 				body: formData,
 				headers: {
-					Authorization: token ? `Bearer ${token}` : "",
+					Authorization: jwt ? `Bearer ${jwt}` : "",
 				},
 				credentials: "include",
 			});
