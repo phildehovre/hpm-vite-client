@@ -25,7 +25,7 @@ const App = () => {
 		const fetchJWT = async () => {
 			try {
 				const res = await fetch(
-					`https://${import.meta.env.VITE_WP_SITE}/wp-json/jwt-auth/v1/token`,
+					`https://${import.meta.env.VITE_WP_SITE}/wp-json/my-auth/v1/token`,
 					{
 						credentials: "include",
 					}
