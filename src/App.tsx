@@ -27,7 +27,7 @@ const App = () => {
 				const res = await fetch(
 					`https://${import.meta.env.VITE_WP_SITE}/wp-json/my-auth/v1/token`,
 					{
-						credentials: "include", // important: sends WordPress cookies
+						credentials: "include",
 					}
 				);
 				const data = await res.json();
