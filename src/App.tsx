@@ -2,10 +2,6 @@ import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-	getCookie,
-	setWordPressLoginCookieSameSiteNone,
-} from "./utils/cookies";
 import { useNavigate } from "react-router-dom";
 
 type AnalysisResult = {
