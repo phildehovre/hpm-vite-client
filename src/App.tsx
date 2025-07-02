@@ -28,10 +28,6 @@ const App = () => {
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		setWordPressLoginCookieSameSiteNone();
-	}, []);
-
-	useEffect(() => {
 		const fetchJWT = async () => {
 			try {
 				const res = await fetch(
@@ -45,9 +41,7 @@ const App = () => {
 					setJwt(data.token);
 				} else {
 					console.warn("No token returned");
-					window.location.replace(
-						"https://staging.humanproductionmusic.com/my-account/"
-					);
+					navigate("/my-account");
 				}
 			} catch (err) {
 				console.error("Failed to fetch JWT:", err);
