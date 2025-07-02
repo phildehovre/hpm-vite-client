@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { setWordPressLoginCookieSameSiteNone } from "./utils/cookies";
+import {
+	getCookie,
+	setWordPressLoginCookieSameSiteNone,
+} from "./utils/cookies";
+import { useNavigate } from "react-router-dom";
 
 type AnalysisResult = {
 	filename: string;
@@ -21,6 +25,7 @@ const App = () => {
 	const [uploading, setUploading] = useState(false);
 	const [results, setResults] = useState<AnalysisResult[]>([]);
 	const [jwt, setJwt] = useState<string>("");
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		setWordPressLoginCookieSameSiteNone();
@@ -40,6 +45,9 @@ const App = () => {
 					setJwt(data.token);
 				} else {
 					console.warn("No token returned");
+					window.location.replace(
+						"https://staging.humanproductionmusic.com/my-account/"
+					);
 				}
 			} catch (err) {
 				console.error("Failed to fetch JWT:", err);
