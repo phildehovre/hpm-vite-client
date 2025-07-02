@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { setWordPressLoginCookieSameSiteNone } from "./utils/cookies";
 
 type AnalysisResult = {
 	filename: string;
@@ -20,6 +21,10 @@ const App = () => {
 	const [uploading, setUploading] = useState(false);
 	const [results, setResults] = useState<AnalysisResult[]>([]);
 	const [jwt, setJwt] = useState<string>("");
+
+	useEffect(() => {
+		setWordPressLoginCookieSameSiteNone();
+	}, []);
 
 	useEffect(() => {
 		const fetchJWT = async () => {

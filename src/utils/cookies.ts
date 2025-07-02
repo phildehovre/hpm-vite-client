@@ -80,3 +80,27 @@ export function deleteCookie(name: string, path: string = "/") {
 
 //     setcookie('wp_jwt_token', $token, time() + 3600, '/', '.yourdomain.com', true, false);
 // }
+
+export function setWordPressLoginCookieSameSiteNone() {
+	// Find the wordpress_logged_in_ cookie name and value
+	const cookies = document.cookie.split("; ");
+	const wpCookie = cookies.find((cookie) =>
+		cookie.startsWith("wordpress_logged_in_")
+	);
+
+	if (!wpCookie) {
+		console.warn("WordPress login cookie not found.");
+		return;
+	}
+
+	const [cookieName, cookieValue] = wpCookie.split("=");
+
+	// Create a new cookie string with SameSite=None and Secure
+	// Also set Path=/ to be safe
+	const newCookie = `${cookieName}=${cookieValue}; Path=/; Secure; SameSite=None;`;
+
+	// Set the cookie again with updated attributes
+	document.cookie = newCookie;
+
+	console.log(`Updated cookie: ${newCookie}`);
+}
