@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { buildRedirectUrl } from "./utils/buildUrl";
 
 type AnalysisResult = {
 	filename: string;
@@ -47,7 +48,12 @@ const App = () => {
 		fetchJWT();
 	}, []);
 
-	console.log("JWT: ", jwt);
+	useEffect(() => {
+		if (import.meta.env.VITE_NODE_ENV === "development") {
+			console.log(import.meta.env.VITE_TEST_JWT);
+			setJwt(import.meta.env.VITE_TEST_JWT);
+		}
+	}, []);
 
 	useEffect(() => {
 		if (results.length >= 1) {
@@ -121,6 +127,8 @@ const App = () => {
 					}
 				}
 			}
+			const redirectUrl = buildRedirectUrl(results);
+			navigate(`${redirectUrl}`);
 		} catch (err) {
 			console.error("Streaming error:", err);
 			setResults((prev) =>
