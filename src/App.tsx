@@ -128,7 +128,7 @@ const App = () => {
 				}
 			}
 			const redirectUrl = buildRedirectUrl(results);
-			navigate(`${redirectUrl}`);
+			navigate(redirectUrl as string);
 		} catch (err) {
 			console.error("Streaming error:", err);
 			setResults((prev) =>
