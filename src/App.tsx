@@ -142,7 +142,7 @@ const App = () => {
 	};
 
 	return (
-		<div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
+		<div className="background flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
 			<Card className="w-full max-w-md">
 				<CardContent>
 					<div
