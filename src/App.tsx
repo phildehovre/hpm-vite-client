@@ -11,10 +11,7 @@ type AnalysisResult = {
 	error?: string;
 };
 
-const BASE_URL =
-	import.meta.env.VITE_NODE_ENV === "development"
-		? import.meta.env.VITE_LOCAL_URL
-		: import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_LOCAL_URL;
 
 const App = () => {
 	const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
